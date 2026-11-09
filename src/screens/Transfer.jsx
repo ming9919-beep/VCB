@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { amountToWords, formatVND } from '../data.js'
 import { BANKS, loadBanks, resolveBank } from '../banks.js'
+import { lookupVietQrAccountName, lookupVietQrRecipientName } from '../vietqrLookup.js'
 import { IconBack, IconChevronDown, IconHomeCircle, IconInfo, IconSearch, IconTemplate } from '../icons.jsx'
 import { useStore } from '../store.jsx'
 
@@ -34,6 +35,9 @@ export default function Transfer() {
   const [showTpl, setShowTpl] = useState(false)
   const [bankQ, setBankQ] = useState('')
   const [q, setQ] = useState('')
+  const [overrideVerified, setOverrideVerified] = useState(false)
+  const [retrying, setRetrying] = useState(false)
+  const [lookupMsg, setLookupMsg] = useState(qr?.lookupError || '')
 
   const src = accounts.find((a) => a.id === sourceId) || accounts[0]
 
@@ -91,6 +95,46 @@ export default function Transfer() {
     if (s) applyPayee(s)
   }, [loc.state, scannedPayee])
 
+  async function retryLookup() {
+    if (retrying || !qr) return
+    setRetrying(true)
+    setLookupMsg('Đang tra cứu tên người nhận...')
+    try {
+      let verification
+      if (/^\d{6}$/.test(qr.bankBin || '')) {
+        verification = await lookupVietQrRecipientName({
+          bankBin: qr.bankBin,
+          accountNumber: accountDigits
+        })
+      } else {
+        verification = await lookupVietQrAccountName({
+          content: qr.rawContent || '',
+          bankCode: qr.bankId || '',
+          accountNumber: accountDigits
+        })
+      }
+      setName(verification.accountName)
+      setOverrideVerified(true)
+      setLookupMsg('')
+      setScannedPayee({
+        ...qr,
+        verified: true,
+        name: verification.accountName,
+        nameMismatch: false,
+        lookupError: ''
+      })
+    } catch (error) {
+      setOverrideVerified(false)
+      setLookupMsg(error?.message
+        || 'Dịch vụ tra cứu tên không khả dụng tại đây. Vui lòng nhập tay tên người nhận.')
+    } finally {
+      setRetrying(false)
+    }
+  }
+  const verifiedOk = overrideVerified || (qr?.verified === true && !qr?.nameMismatch)
+  const qrReady = !isQrTransfer
+    || verifiedOk
+    || (Boolean(name.trim()) && !qr?.nameMismatch)
   const banksFiltered = useMemo(() => {
     const t = bankQ.trim().toLowerCase()
     if (!t) return banks
@@ -105,7 +149,7 @@ export default function Transfer() {
   const isOwnAccount = accountDigits === String(src.number).replace(/\D/g, '')
   const canNext = accountDigits.length >= 6 && accountDigits.length <= 19
     && !isOwnAccount && name.trim() && amt >= 1000 && amt <= 500000000 && amt <= src.balance
-    && (!isQrTransfer || (qr?.verified === true && !qr?.nameMismatch))
+    && qrReady
 
   function pick(b) {
     setBank(resolveBank(b.bank) || banks[0])
@@ -275,8 +319,19 @@ export default function Transfer() {
                     ? qr.nameMismatch
                       ? 'Tên tài khoản đã xác minh nhưng không khớp tên trong QR.'
                       : 'Tên tài khoản đã được dịch vụ ngân hàng xác minh.'
-                    : qr?.lookupError || 'Tên trong QR chưa được dịch vụ ngân hàng xác minh.'}
+                    : lookupMsg || qr?.lookupError || 'Tên trong QR chưa được dịch vụ ngân hàng xác minh. Hãy nhập tay tên bên dưới.'}
                 </div>
+                {!verifiedOk && (
+                  <button
+                    type="button"
+                    className="tf-link"
+                    onClick={retryLookup}
+                    disabled={retrying}
+                    style={{ marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    {retrying ? 'Đang tra cứu...' : 'Thử tra cứu lại tên qua API'}
+                  </button>
+                )}
                 <div className="qr-payee-row">
                   <span>Ngân hàng</span>
                   <strong>
@@ -324,7 +379,7 @@ export default function Transfer() {
                 </div>
               </div>
 
-              <div className={`tf-box ${isQrTransfer && name ? 'tf-box-muted' : ''}`}>
+              <div className={`tf-box ${isQrTransfer && verifiedOk ? 'tf-box-muted' : ''}`}>
                 <div className="tf-box-body">
                   <div className="tf-label">Tên người nhận</div>
                   <input
@@ -332,8 +387,13 @@ export default function Transfer() {
                     value={name}
                     onChange={(e) => setName(e.target.value.slice(0, 80))}
                     placeholder={looking ? 'Đang truy vấn tên...' : 'Nhập tên người nhận'}
-                    readOnly={isQrTransfer || looking}
+                    readOnly={looking || (isQrTransfer && verifiedOk)}
                   />
+                  {isQrTransfer && !verifiedOk && (
+                    <div style={{ fontSize: 12, color: '#8a5a00', marginTop: 6, lineHeight: 1.4 }}>
+                      {lookupMsg || 'Dịch vụ tra cứu tên không khả dụng tại trang tĩnh. Vui lòng nhập tay tên người nhận.'}
+                    </div>
+                  )}
                 </div>
               </div>
               {isOwnAccount && <div className="login-err" style={{ margin: '-4px 0 10px' }}>Không thể chuyển tiền vào chính tài khoản nguồn</div>}
