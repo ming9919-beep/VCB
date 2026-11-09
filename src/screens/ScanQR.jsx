@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { decodeQrFromCanvas, drawImageToCanvas, parseQrPayload } from '../qr.js'
+import { decodeQrFromCanvas, drawImageToCanvas, extractPrintedName, parseQrPayload } from '../qr.js'
 import { resolveBank } from '../banks.js'
 import { IconBack, IconClock, IconFlash, IconGear, IconImage, IconPin } from '../icons.jsx'
 import { useStore } from '../store.jsx'
@@ -324,6 +324,23 @@ export default function ScanQR() {
     try {
       const payload = await decodeQrFromFile(file)
       const localPayee = payload ? payeeFromQrPayload(payload) : null
+      if (localPayee && !localPayee.name) {
+        // 二维码本身不含姓名时，从卡片印刷文字 OCR 预填姓名（仍需人工确认，不视为已核验）
+        try {
+          const bitmap = await createImageBitmap(file)
+          const oc = document.createElement('canvas')
+          if (drawImageToCanvas(bitmap, oc, 1600)) {
+            const ocrName = await extractPrintedName(oc)
+            if (ocrName) {
+              localPayee.qrName = localPayee.qrName || ocrName
+              localPayee.ocrName = true
+            }
+          }
+          bitmap.close()
+        } catch {
+          // OCR 不可用时退回手动输入
+        }
+      }
       if (localPayee) {
         await submitPayee(localPayee)
         return

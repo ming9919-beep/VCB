@@ -304,7 +304,7 @@ export default function Transfer() {
               <div className="qr-payee">
                 <div className="qr-payee-k">Đã quét mã QR</div>
                 <div className="qr-payee-row">
-                  <span>{qr?.verified ? 'Tên đã xác minh' : 'Tên trong mã QR'}</span>
+                  <span>{qr?.verified ? 'Tên đã xác minh' : qr?.ocrName ? 'Tên nhận từ ảnh (chưa đối chiếu)' : 'Tên trong mã QR'}</span>
                   <strong className={!name ? 'qr-payee-missing' : ''}>
                     {name || qr?.qrName || (looking ? 'Đang truy vấn tên người nhận...' : 'Chưa có tên')}
                   </strong>
