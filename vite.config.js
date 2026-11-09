@@ -161,6 +161,7 @@ export default defineConfig(({ mode }) => {
     }
   }
   return {
+    base: process.env.VITE_BASE || '/',
     plugins: [react(), beneficiaryLookupPlugin(serverEnv)],
     optimizeDeps: {
       include: ['vietqr', 'jsqr', 'tesseract.js']

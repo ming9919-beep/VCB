@@ -70,7 +70,7 @@ export default function Home() {
       <div className="scroll splash-home" style={{ paddingBottom: 110 }}>
         <div className="home-top">
           <div className="hero">
-            <img className="hero-art" src="/hero.jpg" alt="" />
+            <img className="hero-art" src="./hero.jpg" alt="" />
           </div>
           <div className="home-nav">
             <div className="brand"><span className="g">VCB</span>{' '}Digibank</div>
