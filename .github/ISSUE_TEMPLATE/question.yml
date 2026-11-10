@@ -1,0 +1,48 @@
+name: 使用 / 接入咨询
+description: 本地跑不起来、环境变量怎么配、VietQR 与 BankLookup 接入疑问
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: 你想做什么
+      placeholder: 例如：想在本地跑通扫码后自动查户名
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: 已经试过什么
+      description: 跑过哪些命令、改过哪些配置、结果如何
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: 相关问题模块
+      options:
+        - 本地环境 / 依赖安装
+        - 环境变量配置（.env.local）
+        - VietQR Reader 代理（/vqr）
+        - BankLookup 户名查询
+        - 扫码与 OCR（jsqr / tesseract.js）
+        - 构建与 Pages 部署
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: 环境信息
+      description: 系统、Node 版本、浏览器
+      placeholder: Windows 11 / Node 22.11 / Chrome 130
+    validations:
+      required: false
+  - type: textarea
+    id: output
+    attributes:
+      label: 报错输出
+      render: shell
+    validations:
+      required: false

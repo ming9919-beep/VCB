@@ -1,0 +1,53 @@
+name: 维护任务
+description: 重构、依赖升级、文档补充、CI 调整等非缺陷类工作
+title: "[Task] "
+labels: ["chore"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: 任务目标
+      description: 做完之后仓库会有什么不同
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: 任务类型
+      options:
+        - 重构 / 代码整理
+        - 依赖升级
+        - 文档 / README
+        - CI / Actions 调整
+        - 仓库配置
+        - 测试补充
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 涉及范围
+      description: 预计要动的目录或文件
+      placeholder: 例如：src/pages/transfer、vite.config.js
+    validations:
+      required: false
+  - type: textarea
+    id: done
+    attributes:
+      label: 完成标准
+      placeholder: |
+        - [ ] CI 全绿
+        - [ ] Pages 能正常部署
+    validations:
+      required: false
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级
+      options:
+        - P1 - 本迭代必须
+        - P2 - 可以排期
+        - P3 - 有空再说
+    validations:
+      required: true

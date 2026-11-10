@@ -1,0 +1,61 @@
+name: 安全问题
+description: 凭据暴露、越权、注入、依赖漏洞等安全事项
+title: "[Security] "
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > ⚠️ **不要把真实密钥、API Key、私钥、数据库口令贴在这里。**
+        > 如果涉及可直接利用的细节（例如某个接口能被绕过校验），请走
+        > [Security Advisories 私密上报](https://github.com/ming9919-beep/VCB/security/advisories/new)，
+        > 公开 Issue 只描述影响面即可。
+
+        本仓库会读取 `BANKLOOKUP_API_KEY` / `BANKLOOKUP_API_SECRET`，
+        任何把真实凭据写进代码、提交历史或 `VITE_` 变量的情况都按 P0 处理。
+  - type: dropdown
+    id: category
+    attributes:
+      label: 问题类型
+      options:
+        - 凭据 / 密钥暴露（含提交历史）
+        - VITE_ 变量把敏感值打进前端包
+        - 越权访问或身份校验缺失
+        - 注入类（XSS / SQLi / 命令注入）
+        - 接口被滥用（无限流、可重放）
+        - 依赖漏洞
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 哪里有问题、能造成什么后果（脱敏描述即可）
+    validations:
+      required: true
+  - type: input
+    id: scope
+    attributes:
+      label: 影响范围
+      placeholder: 仅前端本地 / 线上 Pages / 户名查询接口 / 转账流程
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现或验证方式（脱敏）
+      description: 不必写出利用脚本，描述触发路径即可
+    validations:
+      required: false
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 严重程度（初步判断）
+      options:
+        - P0 - 真实凭据已泄露，需立即轮换
+        - P1 - 可被利用且影响资金或用户数据
+        - P2 - 需要特定条件才能利用
+        - P3 - 加固建议，暂无实际影响
+    validations:
+      required: true

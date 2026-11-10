@@ -1,0 +1,81 @@
+name: 线上故障 / 部署异常
+description: Pages 白屏、构建失败、接口 502、扫码不可用等线上问题
+title: "[Deploy] "
+labels: ["deploy"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **提交前先自查这三项**，能省一轮来回：
+        1. Actions 最近一次运行是不是失败（`Actions` → `CI`）
+        2. Pages 部署记录是否停在旧版本（`Deployments` → `github-pages`）
+        3. 浏览器控制台 / 网络面板里第一个报红的请求是什么
+
+        本地跑得起来、线上不行，通常出在 `VITE_` 变量没注入、base 路径不对、或后端代理不可达。
+  - type: dropdown
+    id: env
+    attributes:
+      label: 出问题的环境
+      options:
+        - GitHub Pages 线上（ming9919-beep.github.io/VCB）
+        - 本地 dev（vite 5173）
+        - 本地 preview
+        - 自定义域名 / 其他主机
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: 受影响的页面或接口
+      placeholder: https://ming9919-beep.github.io/VCB/#/transfer
+    validations:
+      required: true
+  - type: dropdown
+    id: symptom
+    attributes:
+      label: 故障表现
+      options:
+        - 页面白屏 / 打不开
+        - 静态资源 404，样式或图标丢失
+        - 登录或转账流程报错
+        - 扫码无响应 / 识别失败
+        - 户名查询返回错误提示
+        - 构建失败，部署没更新
+        - 其他
+    validations:
+      required: true
+  - type: input
+    id: first-seen
+    attributes:
+      label: 首次发现时间
+      description: 带时区，便于对日志
+      placeholder: 2026-11-11 14:20 (UTC+7)
+    validations:
+      required: false
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 打开线上地址
+        2. 进入转账页
+        3. 点击扫码
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图 / 相关运行记录
+      description: 贴控制台输出、失败 run 的链接、接口响应体（敏感信息请脱敏）
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: self-check
+    attributes:
+      label: 已完成的排查
+      options:
+        - label: 确认 Actions 最近一次运行状态
+        - label: 确认 Pages 部署的是最新 commit
+        - label: 抓到了具体报错（不是只说"打不开"）
+        - label: 已在本地或 preview 复现过，或确认只在线上出现
