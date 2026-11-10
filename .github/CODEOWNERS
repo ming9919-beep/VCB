@@ -1,0 +1,7 @@
+# 默认所有文件由仓库所有者审核
+*       @ming9919-beep
+
+# 凭据与部署相关文件改动需额外留意
+/.github/                @ming9919-beep
+/.env.example            @ming9919-beep
+/vite.config.js          @ming9919-beep

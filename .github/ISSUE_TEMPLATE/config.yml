@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 线上站点
+    url: https://ming9919-beep.github.io/VCB/
+    about: 先确认问题在线上是否也能复现
+  - name: BankLookup 控制台
+    url: https://banklookup.net
+    about: 户名查询报 OUT_OF_CREDIT / IP_NOT_ALLOWED 时先查这里的额度与 IP 白名单

@@ -1,0 +1,40 @@
+name: 功能需求
+description: 新页面、新交互、新接口接入
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景与目标
+      description: 为什么需要这个功能，解决什么问题
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的实现方式
+      description: 页面/组件/接口层面的想法，有参考截图或设计稿请附上
+    validations:
+      required: false
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级
+      options:
+        - P0 - 阻塞上线
+        - P1 - 本迭代必须
+        - P2 - 可以排期
+        - P3 - 有空再说
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收标准
+      description: 怎样算做完，写成可勾选的条目
+      placeholder: |
+        - [ ] 扫码后 3 秒内显示户名
+        - [ ] 查询失败有越南语错误提示
+    validations:
+      required: false
