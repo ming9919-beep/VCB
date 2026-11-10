@@ -1,0 +1,62 @@
+name: Release
+
+# 推 v*.*.* 形式的 tag 即自动构建并发布 Release，附件是可直接部署的 dist 压缩包
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "要发布的 tag，例如 v1.1.0（必须已存在）"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_BASE: /VCB/
+          NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: Pack dist
+        run: |
+          cd dist
+          zip -qr "$GITHUB_WORKSPACE/dist-${{ github.ref_name }}.zip" .
+          cd "$GITHUB_WORKSPACE"
+          sha256sum "dist-${{ github.ref_name }}.zip" > checksums.txt
+          ls -lh dist-*.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
+          name: ${{ inputs.tag || github.ref_name }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          files: |
+            dist-*.zip
+            checksums.txt

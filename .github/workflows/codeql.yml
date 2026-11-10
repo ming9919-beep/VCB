@@ -1,0 +1,46 @@
+name: CodeQL
+
+# 静态代码安全扫描：push main / PR / 每周一自动跑
+# 结果看 Security → Code scanning alerts，能查出注入、越权、硬编码密钥等问题
+# 注意：本仓库 vite.config.js 里有 banklookup 凭据读取逻辑，扫描对这类代码敏感，属正常
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 1 * * 1"   # 每周一 01:00 UTC = 08:00 金边时间
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze (javascript-typescript)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          language: ${{ matrix.language }}
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

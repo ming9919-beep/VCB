@@ -1,0 +1,68 @@
+name: CI
+
+# VCB (vcb-digibank) 每次 push main / 每个 PR 自动跑：装依赖 → 构建 → 产物留档
+# job 名 "Build & Test" 是分支保护要求的状态检查名，改名要同步改分支保护
+# 仓库后续加了 lint / test 脚本，下面的步骤会自动开始执行（没有则跳过）
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (if script exists)
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.lint?0:1)"; then
+            npm run lint
+          else
+            echo "::notice::package.json 没有 lint 脚本，跳过"
+          fi
+
+      - name: Unit tests (if script exists)
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.test?0:1)"; then
+            npm run test
+          else
+            echo "::notice::package.json 没有 test 脚本，跳过"
+          fi
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_BASE: /
+          NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: Upload build output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist-${{ github.sha }}
+          path: dist
+          retention-days: 7
+          if-no-files-found: warn
