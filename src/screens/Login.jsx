@@ -33,8 +33,9 @@ export default function Login() {
 
   function submit(event) {
     event.preventDefault()
-    if (!demoUsername || !demoPhone || !isDemoLoginValid(identity, password)) {
-      setErr(demoUsername && demoPhone ? copy.invalid : copy.missing)
+    const hasDemoIdentity = Boolean(demoUsername || demoPhone)
+    if (!hasDemoIdentity || !isDemoLoginValid(identity, password)) {
+      setErr(hasDemoIdentity ? copy.invalid : copy.missing)
       return
     }
     setErr('')
